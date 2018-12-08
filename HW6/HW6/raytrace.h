@@ -53,6 +53,12 @@ typedef struct sphere {
   material* m;
 } sphere;
 
+typedef struct plane {
+	point* c;  /* center */
+	vector normal;
+	material* m;
+} plane;
+
 typedef struct Light {
 	color c;
 	GLfloat intensity;
@@ -72,8 +78,11 @@ void shade(ray*, point*,vector*,material*, color*);
 /* global variables */
 extern int width;
 extern int height;
+extern Light L;
 
 /* the scene: so far, two sphere */
 sphere* s1;
 sphere* s2;
+
+plane* pl1;
 

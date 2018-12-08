@@ -55,7 +55,22 @@ sphere* makeSphere(GLfloat x, GLfloat y, GLfloat z, GLfloat r) {
   return(s);
 }
 
+plane* makePlane(GLfloat x, GLfloat y, GLfloat z, vector* n) {
+	plane* pl;
+	/* allocate memory */
+	pl = (plane*)malloc(sizeof(plane));
+
+	/* put stuff in it */
+	pl->c = makePoint(x, y, z, 1.0);   /* center */
+	pl->normal.x = n->x;
+	pl->normal.y = n->y;
+	pl->normal.z = n->z;
+	pl->m = NULL;   /* material */
+	return(pl);
+}
+
 /* returns the color seen by ray r in parameter c */
+int k = 0;
 void rayColor(ray* r, color* c) {
   point p;  /* first intersection point */
   vector n;
@@ -68,10 +83,14 @@ void rayColor(ray* r, color* c) {
   if (p.w != 0.0) {
 	  // c는 색상값 받아올 변수.
 	  shade(r, &p, &n, m, c);  /* do the lighting calculations */
-	  if (p.w < 0) {
+	  if (p.w == -1) {
 		  c->r *= 0.3;
 		  c->g *= 0.3;
 		  c->b *= 0.3;
+	  }
+	  else if (p.w == -2 && k == 0) {
+		  k++;
+		  printf("%.2f %.2f %.2f \n", c->r, c->g, c->b);
 	  }
   }
   // ray가 구에 닿지 않았을 시
@@ -155,7 +174,7 @@ void init(int w, int h) {
   /* OpenGL setup */
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+  glOrtho(0.0, 1.0, 0.0, 1.0, -2.0, 2.0);
   glClearColor(0.0, 0.0, 0.0, 1.0);  
 
   /* low-level graphics setup */
@@ -189,10 +208,13 @@ void initCamera (int w, int h) {
 }
 
 void initScene () {
-  s1 = makeSphere(0.0, 0.0, -2.5, 0.2);
-  s2 = makeSphere(-0.12, -0.12, -2.0, 0.05);
-  s1->m = makeMaterial(0.8,0.3,0.3,0.25, 0, 0);
-  s2->m = makeMaterial(0.6, 0.6, 0.3, 0.25, 0, 0);
+	vector n = {0, 0, 1};
+	s1 = makeSphere(0.0, 0.0, -2.5, 0.2);
+	s2 = makeSphere(-0.12, -0.12, -2.0, 0.05);
+	pl1 = makePlane(0, 0, -2.8, &n);
+	s1->m = makeMaterial(0.8,0.3,0.3,0.25, 0, 0);
+	s2->m = makeMaterial(0.6, 0.6, 0.3, 0.25, 0, 0);
+	pl1->m = makeMaterial(0.5, 0.7, 0.5, 0.25, 0, 0);
 }
 
 void drawScene () {

@@ -12,8 +12,6 @@
 #include <GL/glut.h>
 #include "raytrace.h"
 
-extern Light L;
-
 /* point on ray r parameterized by t is returned in p */
 void findPointOnRay(ray* r, double t, point* p) {
   p->x = r->start->x + t * r->end->x;
@@ -60,6 +58,34 @@ int raySphereIntersect(ray* r,sphere* s,double* t) {
   }
 }
 
+/* rayPlaneIntersect */
+/* returns TRUE if ray r hits sphere s, with parameter value in t */
+int rayPlaneIntersect(ray* r, plane* pl, double* t) {
+	vector p;   /* start of transformed ray */
+	double D, temp;    /* discriminant */
+	vector* v;
+	
+	v = r->end; /* point to direction vector */
+	Vnormalize(v);
+	D = calculCross(&pl->normal, v);
+
+	if (abs(D) < 0.0001) {  /* no intersection */
+		return (FALSE);
+	}
+	else {
+		p.x = - r->start->x + pl->c->x;
+		p.y = - r->start->y + pl->c->y;
+		p.z = - r->start->z + pl->c->z;
+		temp = calculCross(&p, &pl->normal) / D;
+		/* ignore roots which are less than zero (behind viewpoint) */
+		if (temp > 0) {
+			*t = temp;
+			return(TRUE);
+		}
+		else return(FALSE);
+	}
+}
+
 /* normal vector of s at p is returned in n */
 /* note: dividing by radius normalizes */
 void findSphereNormal(sphere* s, point* p, vector* n) {
@@ -101,27 +127,18 @@ void findReflectionRay(vector v, vector* n, vector* R) {
 
 }
 
-vector transRtoV(ray* r) {
-
-	vector v;
-
-	v.x = r->end->x - r->start->x;
-	v.y = r->end->y - r->start->y;
-	v.z = r->end->z - r->start->z;
-
-	return v;
-
-}
-
 int j = 0;
 /* trace */
 /* If something is hit, returns the finite intersection point p, 
    the normal vector n to the surface at that point, and the surface
    material m. If no hit, returns an infinite point (p->w = 0.0) */
 void trace (ray* r, point* p, vector* n, material* *m) {
-  double t1 = 0, t2 = 0;     /* parameter value at first hit */
-  int hit1 = FALSE, hit2 = FALSE;
-  vector v = transRtoV(r);
+  double t1 = 0, t2 = 0, t3 = 0;     /* parameter value at first hit */
+  int hit1 = FALSE, hit2 = FALSE, hit3 = FALSE;
+  vector v;
+  v.x = r->end->x;
+  v.y = r->end->y;
+  v.z = r->end->z;
   vector R;
   ray temp;
   point pp;
@@ -129,12 +146,14 @@ void trace (ray* r, point* p, vector* n, material* *m) {
   hit1 = raySphereIntersect(r, s1,&t1);		// 화면에 있는 구 s1 에 ray r이 닿았는지 체크
   hit2 = raySphereIntersect(r, s2, &t2);		// 화면에 있는 구 s2 에 ray r이 닿았는지 체크
 
-  // 둘 다 닿았으면 더 가까운 곳에만 닿은 걸로 처리
+  // 여러개 다 닿았으면 더 가까운 곳에만 닿은 걸로 처리
   if (hit1 && hit2) {
-	  if (t1 < t2)
+	  if (t1 <= t2) {
 		  hit2 = FALSE;
-	  else
+	  }
+	  else {
 		  hit1 = FALSE;
+	  }
   }
 
   if (hit1) {
@@ -157,15 +176,26 @@ void trace (ray* r, point* p, vector* n, material* *m) {
 	  findPointOnRay(r, t2, p);
 	  findSphereNormal(s2, p, n);
 	  findReflectionRay(v, n, &R);
-	  /*temp.start = p;
-	  pp.x = R.x * 5 + p->x;
-	  pp.y = R.y * 5 + p->y;
-	  pp.z = R.z * 5 + p->z;
+	  temp.start = p;
+	  pp.x = L.pos_light.x - p->x;
+	  pp.y = L.pos_light.y - p->y;
+	  pp.z = L.pos_light.z - p->z;
 	  temp.end = &pp;
 	  r->next = &temp;
-	  if (raySphereIntersect(r->next, s1, &t1)) {
-		  p->w = 0.0;
-	  }*/
+	  if (raySphereIntersect(r->next, s1, &t2)) {
+		  p->w = -1.0;
+	  }
+  }
+  else if (!hit3) {
+	  *m = pl1->m;
+	  t3 = (pl1->c->z - r->start->z) / v.z;
+	  findPointOnRay(r, t3, p);
+	  n = &pl1->normal;
+	  p->w = -2;
+	  if (j == 0) {
+		  j++;
+		  printf("%f %f %f \n", p->x, p->y, p->z);
+	  }
   }
   else {
     /* indicates nothing was hit */

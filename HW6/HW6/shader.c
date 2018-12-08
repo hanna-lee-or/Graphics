@@ -10,8 +10,6 @@
 #include <GL/glut.h>
 #include "raytrace.h"
 
-extern Light L;
-
 material* makeMaterial(GLfloat r, GLfloat g, GLfloat b, GLfloat amb, GLfloat ref, GLfloat trans) {
   material* m;
   
@@ -49,8 +47,8 @@ color calculLighting(ray* r, point* p, vector* n, material* m) {
 	vector itop = {-ptoi.x, -ptoi.y, -ptoi.z};
 	vector ra = {r->end->x - r->start->x, r->end->y - r->start->y , r->end->z - r->start->z};
 	Vnormalize(&ra);
-	seta = calculCos(&ptoi, n) * L.intensity;		// * dif
-	beta = calculCos(&ra, &itop) * L.intensity * 0.5;		// * spec
+	seta = calculCos(&ptoi, n) * L.intensity;		// * dif = 1
+	beta = calculCos(&ra, &itop) * L.intensity * 0.5;		// * spec = 0.5
 
 	temp.r = (L.amb*m->amb + 0.1 * dist * (seta + beta))
 			* (1 - m->ref - m->trans) * m->c.r;
