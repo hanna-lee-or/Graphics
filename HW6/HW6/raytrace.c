@@ -88,9 +88,25 @@ void rayColor(ray* r, color* c) {
 		  c->g *= 0.3;
 		  c->b *= 0.3;
 	  }
-	  else if (p.w == -2 && k == 0) {
-		  k++;
-		  printf("%.2f %.2f %.2f \n", c->r, c->g, c->b);
+	  else if (p.w == -2) {
+		  /*c->r = 0.7;
+		  c->g = 0.8;
+		  c->b = 0.7;*/
+		  if (k == 0) {
+			  k++;
+			  printf("plane1 색상 값 : %.2f %.2f %.2f \n", c->r, c->g, c->b);
+			  printf("normal vector : %.2f %.2f %.2f \n", n.x, n.y, n.z);
+		  }
+	  }
+	  else if (p.w == -3) {
+		  /*c->r = 0.7;
+		  c->g = 0.7;
+		  c->b = 0.8;*/
+		  if (k == 0) {
+			  k++;
+			  printf("plane2 색상 값 : %.2f %.2f %.2f \n", c->r, c->g, c->b);
+			  printf("normal vector : %.2f %.2f %.2f \n", n.x, n.y, n.z);
+		  }
 	  }
   }
   // ray가 구에 닿지 않았을 시
@@ -133,10 +149,10 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 		L.pos_light.x += 1;
 	}
 	if (Key == 'w') {
-		L.pos_light.y += 1;
+		L.pos_light.y += 0.5;
 	}
 	if (Key == 's') {
-		L.pos_light.y -= 1;
+		L.pos_light.y -= 0.5;
 	}
 	if (Key == 'q') {
 		L.pos_light.z -= 1;
@@ -208,13 +224,15 @@ void initCamera (int w, int h) {
 }
 
 void initScene () {
-	vector n = {0, 0, 1};
+	vector n1 = { 0, -1, 0 }, n2 = {0, 0, -1};
 	s1 = makeSphere(0.0, 0.0, -2.5, 0.2);
 	s2 = makeSphere(-0.12, -0.12, -2.0, 0.05);
-	pl1 = makePlane(0, 0, -2.8, &n);
+	pl1 = makePlane(0, -2, 0, &n1);
+	pl2 = makePlane(0, 0, -3, &n2);
 	s1->m = makeMaterial(0.8,0.3,0.3,0.25, 0, 0);
 	s2->m = makeMaterial(0.6, 0.6, 0.3, 0.25, 0, 0);
-	pl1->m = makeMaterial(0.5, 0.7, 0.5, 0.25, 0, 0);
+	pl1->m = makeMaterial(0.7, 0.8, 0.7, 0.8, 0, 0);
+	pl2->m = makeMaterial(0.7, 0.7, 0.8, 0.8, 0, 0);
 }
 
 void drawScene () {

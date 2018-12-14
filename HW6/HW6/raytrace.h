@@ -85,4 +85,5 @@ sphere* s1;
 sphere* s2;
 
 plane* pl1;
+plane* pl2;
 

@@ -66,7 +66,7 @@ int rayPlaneIntersect(ray* r, plane* pl, double* t) {
 	vector* v;
 	
 	v = r->end; /* point to direction vector */
-	Vnormalize(v);
+	//Vnormalize(v);
 	D = calculCross(&pl->normal, v);
 
 	if (abs(D) < 0.0001) {  /* no intersection */
@@ -78,7 +78,7 @@ int rayPlaneIntersect(ray* r, plane* pl, double* t) {
 		p.z = - r->start->z + pl->c->z;
 		temp = calculCross(&p, &pl->normal) / D;
 		/* ignore roots which are less than zero (behind viewpoint) */
-		if (temp > 0) {
+		if (temp > 0 && temp < 20) {
 			*t = temp;
 			return(TRUE);
 		}
@@ -133,8 +133,8 @@ int j = 0;
    the normal vector n to the surface at that point, and the surface
    material m. If no hit, returns an infinite point (p->w = 0.0) */
 void trace (ray* r, point* p, vector* n, material* *m) {
-  double t1 = 0, t2 = 0, t3 = 0;     /* parameter value at first hit */
-  int hit1 = FALSE, hit2 = FALSE, hit3 = FALSE;
+  double t1 = 0, t2 = 0, t3 = 0, t4 = 0;     /* parameter value at first hit */
+  int hit1 = FALSE, hit2 = FALSE, hit3 = FALSE, hit4 = FALSE;
   vector v;
   v.x = r->end->x;
   v.y = r->end->y;
@@ -145,6 +145,16 @@ void trace (ray* r, point* p, vector* n, material* *m) {
   
   hit1 = raySphereIntersect(r, s1,&t1);		// 화면에 있는 구 s1 에 ray r이 닿았는지 체크
   hit2 = raySphereIntersect(r, s2, &t2);		// 화면에 있는 구 s2 에 ray r이 닿았는지 체크
+  if (!hit1 && !hit2) {
+	  hit3 = rayPlaneIntersect(r, pl1, &t3);	// 화면에 있는 plane pl1에 ray r이 닿았는지 체크
+	  hit4 = rayPlaneIntersect(r, pl2, &t4);	// 화면에 있는 plane pl2에 ray r이 닿았는지 체크
+	 if (t3 <= t4) {
+		  hit4 = FALSE;
+	  }
+	  else {
+		  hit3 = FALSE;
+	  }
+  }
 
   // 여러개 다 닿았으면 더 가까운 곳에만 닿은 걸로 처리
   if (hit1 && hit2) {
@@ -186,15 +196,43 @@ void trace (ray* r, point* p, vector* n, material* *m) {
 		  p->w = -1.0;
 	  }
   }
-  else if (!hit3) {
+  else if (hit3) {
 	  *m = pl1->m;
-	  t3 = (pl1->c->z - r->start->z) / v.z;
+	  //t3 = (pl1->c->y - r->start->y) / v.y;
 	  findPointOnRay(r, t3, p);
-	  n = &pl1->normal;
+	  *n = pl1->normal;
 	  p->w = -2;
 	  if (j == 0) {
 		  j++;
-		  printf("%f %f %f \n", p->x, p->y, p->z);
+		  printf("plane 점1 : %f %f %f \n", p->x, p->y, p->z);
+	  }
+	  temp.start = p;
+	  pp.x = L.pos_light.x - p->x;
+	  pp.y = L.pos_light.y - p->y;
+	  pp.z = L.pos_light.z - p->z;
+	  temp.end = &pp;
+	  r->next = &temp;
+	  if (raySphereIntersect(r->next, s1, &t2) || raySphereIntersect(r->next, s2, &t1)) {
+		  p->w = -1.0;
+	  }
+  }
+  else if (hit4) {
+	  *m = pl2->m;
+	  findPointOnRay(r, t4, p);
+	  *n = pl2->normal;
+	  p->w = -3;
+	  if (j == 0) {
+		  j++;
+		  printf("plane 점2 : %f %f %f \n", p->x, p->y, p->z);
+	  }
+	  temp.start = p;
+	  pp.x = L.pos_light.x - p->x;
+	  pp.y = L.pos_light.y - p->y;
+	  pp.z = L.pos_light.z - p->z;
+	  temp.end = &pp;
+	  r->next = &temp;
+	  if (raySphereIntersect(r->next, s1, &t2) || raySphereIntersect(r->next, s2, &t1)) {
+		  p->w = -1.0;
 	  }
   }
   else {

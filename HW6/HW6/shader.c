@@ -63,9 +63,9 @@ color calculLighting(ray* r, point* p, vector* n, material* m) {
 		printf("%f %f %f \n", temp.r, temp.g, temp.b);
 	}
 
-	c.r += temp.r;
-	c.g += temp.g;
-	c.b += temp.b;
+	c.r = temp.r;
+	c.g = temp.g;
+	c.b = temp.b;
 
 	return c;
 
