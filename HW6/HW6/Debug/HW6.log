@@ -1,4 +1,3 @@
-﻿  tracer.c
-c:\users\user\desktop\hw6\hw6\tracer.c(70): warning C4013: 'calculCross'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
-c:\users\user\desktop\hw6\hw6\tracer.c(116): warning C4142: 'calculCross': 형식이 재정의되었지만 심각하지는 않습니다.
-  HW6.vcxproj -> C:\Users\USER\Desktop\HW6\Debug\HW6.exe
+﻿  raytrace.c
+c:\users\user\desktop\coding\c\그래픽스\hw6\hw6\raytrace.c(114): warning C4101: 'length' :참조되지 않은 지역 변수입니다.
+  HW6.vcxproj -> C:\Users\USER\Desktop\Coding\C\그래픽스\HW6\Debug\HW6.exe

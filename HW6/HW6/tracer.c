@@ -69,14 +69,15 @@ int rayPlaneIntersect(ray* r, plane* pl, double* t) {
 	//Vnormalize(v);
 	D = calculCross(&pl->normal, v);
 
-	if (abs(D) < 0.0001) {  /* no intersection */
+	if (abs(D) < 0.001) {  /* no intersection */
 		return (FALSE);
 	}
 	else {
 		p.x = - r->start->x + pl->c->x;
 		p.y = - r->start->y + pl->c->y;
 		p.z = - r->start->z + pl->c->z;
-		temp = calculCross(&p, &pl->normal) / D;
+		temp = calculCross(&p, &pl->normal);
+		temp = temp / D;
 		/* ignore roots which are less than zero (behind viewpoint) */
 		if (temp > 0 && temp < 20) {
 			*t = temp;
@@ -146,13 +147,15 @@ void trace (ray* r, point* p, vector* n, material* *m) {
   hit1 = raySphereIntersect(r, s1,&t1);		// 화면에 있는 구 s1 에 ray r이 닿았는지 체크
   hit2 = raySphereIntersect(r, s2, &t2);		// 화면에 있는 구 s2 에 ray r이 닿았는지 체크
   if (!hit1 && !hit2) {
-	  hit3 = rayPlaneIntersect(r, pl1, &t3);	// 화면에 있는 plane pl1에 ray r이 닿았는지 체크
-	  hit4 = rayPlaneIntersect(r, pl2, &t4);	// 화면에 있는 plane pl2에 ray r이 닿았는지 체크
-	 if (t3 <= t4) {
-		  hit4 = FALSE;
+	 //rayPlaneIntersect(r, pl1, &t3);	// 화면에 있는 plane pl1에 ray r이 닿았는지 체크
+	  t3 = (pl1->c->y - r->start->y) / v.y;
+	 //rayPlaneIntersect(r, pl2, &t4);	// 화면에 있는 plane pl2에 ray r이 닿았는지 체크
+	  t4 = (pl2->c->z - r->start->z) / v.z;
+	 if (t3 < t4 && (r->start->y + t4 * r->end->y) > 0) {
+		  hit3 = TRUE;
 	  }
 	  else {
-		  hit3 = FALSE;
+		  hit4 = TRUE;
 	  }
   }
 
@@ -198,7 +201,6 @@ void trace (ray* r, point* p, vector* n, material* *m) {
   }
   else if (hit3) {
 	  *m = pl1->m;
-	  //t3 = (pl1->c->y - r->start->y) / v.y;
 	  findPointOnRay(r, t3, p);
 	  *n = pl1->normal;
 	  p->w = -2;

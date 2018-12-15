@@ -30,7 +30,7 @@ GLfloat fovx;  /* x-angle of view frustum */
 int width;     /* width of window in pixels */
 int height;    /* height of window in pixels */
 
-Light L = { {255, 255, 255}, 0.5, 1, {-2, -2, 4, 0}, TRUE };
+Light L = { {255, 255, 255}, 0.5, 1, {1, -1, 3, 0}, TRUE };
 
 /* some geometry functions */
 
@@ -83,31 +83,22 @@ void rayColor(ray* r, color* c) {
   if (p.w != 0.0) {
 	  // c는 색상값 받아올 변수.
 	  shade(r, &p, &n, m, c);  /* do the lighting calculations */
+	  // 그림자 효과
 	  if (p.w == -1) {
 		  c->r *= 0.3;
 		  c->g *= 0.3;
 		  c->b *= 0.3;
 	  }
-	  else if (p.w == -2) {
-		  /*c->r = 0.7;
+	  /*else if (p.w == -2) {
+		  c->r = 0.5;
 		  c->g = 0.8;
-		  c->b = 0.7;*/
-		  if (k == 0) {
-			  k++;
-			  printf("plane1 색상 값 : %.2f %.2f %.2f \n", c->r, c->g, c->b);
-			  printf("normal vector : %.2f %.2f %.2f \n", n.x, n.y, n.z);
-		  }
+		  c->b = 0.5;
 	  }
 	  else if (p.w == -3) {
-		  /*c->r = 0.7;
-		  c->g = 0.7;
-		  c->b = 0.8;*/
-		  if (k == 0) {
-			  k++;
-			  printf("plane2 색상 값 : %.2f %.2f %.2f \n", c->r, c->g, c->b);
-			  printf("normal vector : %.2f %.2f %.2f \n", n.x, n.y, n.z);
-		  }
-	  }
+		  c->r = 0.5;
+		  c->g = 0.5;
+		  c->b = 0.8;
+	  }*/
   }
   // ray가 구에 닿지 않았을 시
   else {             /* nothing was hit */
@@ -138,15 +129,15 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 	
 	if (Key == 'r') {
 		L.visable = !L.visable;
-		L.pos_light.x = -2;
-		L.pos_light.y = -2;
-		L.pos_light.z = 4;
+		L.pos_light.x = 1;
+		L.pos_light.y = -1;
+		L.pos_light.z = 3;
 	}
 	if (Key == 'a') {
-		L.pos_light.x -= 1;
+		L.pos_light.x -= 0.5;
 	}
 	if (Key == 'd') {
-		L.pos_light.x += 1;
+		L.pos_light.x += 0.5;
 	}
 	if (Key == 'w') {
 		L.pos_light.y += 0.5;
@@ -155,10 +146,10 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 		L.pos_light.y -= 0.5;
 	}
 	if (Key == 'q') {
-		L.pos_light.z -= 1;
+		L.pos_light.z -= 0.5;
 	}
 	if (Key == 'e') {
-		L.pos_light.z += 1;
+		L.pos_light.z += 0.5;
 	}
 	if (Key == 't') {
 		printf("조명 좌표 : %f %f %f", L.pos_light.x, L.pos_light.y, L.pos_light.z);
@@ -223,16 +214,17 @@ void initCamera (int w, int h) {
   height = h;
 }
 
+// 씬에 물건 만들기
 void initScene () {
-	vector n1 = { 0, -1, 0 }, n2 = {0, 0, -1};
+	vector n1 = { 0, -0.5, 0 }, n2 = {0, 0.15, 0.2};
 	s1 = makeSphere(0.0, 0.0, -2.5, 0.2);
 	s2 = makeSphere(-0.12, -0.12, -2.0, 0.05);
-	pl1 = makePlane(0, -2, 0, &n1);
-	pl2 = makePlane(0, 0, -3, &n2);
+	pl1 = makePlane(0, 0.3, 0, &n1);
+	pl2 = makePlane(0, 0, -5, &n2);
 	s1->m = makeMaterial(0.8,0.3,0.3,0.25, 0, 0);
-	s2->m = makeMaterial(0.6, 0.6, 0.3, 0.25, 0, 0);
-	pl1->m = makeMaterial(0.7, 0.8, 0.7, 0.8, 0, 0);
-	pl2->m = makeMaterial(0.7, 0.7, 0.8, 0.8, 0, 0);
+	s2->m = makeMaterial(0.7, 0.7, 0.3, 0.25, 0, 0);
+	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.8, 0, 0);
+	pl2->m = makeMaterial(0.4, 0.4, 0.8, 0.8, 0, 0);
 }
 
 void drawScene () {
