@@ -25,43 +25,50 @@ material* makeMaterial(GLfloat r, GLfloat g, GLfloat b, GLfloat amb, GLfloat ref
   return(m);
 }
 
+void Vnormalize(vector *V)
+{
+	double d1 = sqrt(V->x * V->x + V->y * V->y + V->z * V->z);
+	double d;
+	if (d1 == 0)
+	{
+		d = 0;
+	}
+	else
+	{
+		d = (double)1.0 / d1;
+	}
+
+	V->x *= d;
+	V->y *= d;
+	V->z *= d;
+}
+
 GLfloat calculDist(point* p, point q) {
 
 	return (p->x - q.x)*(p->x - q.x) + (p->y - q.y)*(p->y - q.y) + (p->z - q.z)*(p->z - q.z);
 
 }
 
-GLfloat calculCos(vector *v1, vector *v2) {
-	return (v1->x * v2->x) + (v1->y * v2->y) + (v1->z * v2->z);
-}
-
-int i = 0;
 /* LIGHTING CALCULATIONS */
 color calculLighting(ray* r, point* p, vector* n, material* m) {
 
 	color c = { 0, 0, 0 };
-	GLfloat seta = 0, beta = 0, dist = calculDist(p, L.pos_light) + 1;
+	GLfloat seta = 0, beta = 0, dist = calculDist(p, pointLight.pos_light) + 1;
 	color temp;
-	vector ptoi = {L.pos_light.x - p->x, L.pos_light.y - p->y , L.pos_light.z - p->z};
+	vector ptoi = {pointLight.pos_light.x - p->x, pointLight.pos_light.y - p->y , pointLight.pos_light.z - p->z};
 	Vnormalize(&ptoi);
 	vector itop = {-ptoi.x, -ptoi.y, -ptoi.z};
 	vector ra = {r->end->x - r->start->x, r->end->y - r->start->y , r->end->z - r->start->z};
 	Vnormalize(&ra);
-	seta = calculCos(&ptoi, n) * L.intensity;		// * dif = 1
-	beta = calculCos(&ra, &itop) * L.intensity * 0.5;		// * spec = 0.5
+	seta = calculCross(&ptoi, n) * pointLight.intensity;					// * dif = 1
+	beta = calculCross(&ra, &itop) * pointLight.intensity * 0.5;		// * spec = 0.5
 
-	temp.r = (L.amb*m->amb + 0.1 * dist * (seta + beta))
+	temp.r = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta))
 			* (1 - m->ref - m->trans) * m->c.r;
-	temp.g = (L.amb*m->amb + 0.1 * dist * (seta + beta))
+	temp.g = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta))
 			* (1 - m->ref - m->trans) * m->c.g;
-	temp.b = (L.amb*m->amb + 0.1 * dist * (seta + beta))
+	temp.b = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta))
 			* (1 - m->ref - m->trans) * m->c.b;
-	
-	if (i == 0) {
-		i++;
-		printf("%f %f \n", seta, beta);
-		printf("%f %f %f \n", temp.r, temp.g, temp.b);
-	}
 
 	c.r = temp.r;
 	c.g = temp.g;
@@ -80,7 +87,7 @@ void shade(ray* r, point* p,vector* n,material* m, color* c) {
   c->g = m->amb * m->c.g;
   c->b = m->amb * m->c.b;
 
-  if(L.visable)
+  if(pointLight.visable)
 	  *c = calculLighting(r, p, n, m);
 
   /* clamp color values to 0.0 ~ 1.0 */

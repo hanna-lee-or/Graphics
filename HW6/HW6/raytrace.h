@@ -70,15 +70,16 @@ typedef struct Light {
 /* functions in tracer.c */
 void trace (ray*, point*, vector*, material**);
 void Vnormalize(vector*);
+GLfloat calculCross(vector *, vector *);
 
 /* functions in shader.c */
 material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
-void shade(ray*, point*,vector*,material*, color*);
+void shade(ray*, point*, vector*, material*, color*);
 
 /* global variables */
 extern int width;
 extern int height;
-extern Light L;
+extern Light pointLight;
 
 /* the scene: so far, two sphere */
 sphere* s1;
