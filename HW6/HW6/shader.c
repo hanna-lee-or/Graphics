@@ -10,7 +10,7 @@
 #include <GL/glut.h>
 #include "raytrace.h"
 
-material* makeMaterial(GLfloat r, GLfloat g, GLfloat b, GLfloat amb, GLfloat ref, GLfloat trans) {
+material* makeMaterial(GLfloat r, GLfloat g, GLfloat b, GLfloat amb, GLfloat ref, GLfloat trans, GLfloat dif, GLfloat spec) {
   material* m;
   
   /* allocate memory */
@@ -22,6 +22,8 @@ material* makeMaterial(GLfloat r, GLfloat g, GLfloat b, GLfloat amb, GLfloat ref
   m->amb = amb;
   m->ref = ref;
   m->trans = trans;
+  m->dif = dif;
+  m->spec = spec;
   return(m);
 }
 
@@ -60,8 +62,8 @@ color calculLighting(ray* r, point* p, vector* n, material* m) {
 	vector itop = {-ptoi.x, -ptoi.y, -ptoi.z};
 	vector ra = {r->end->x - r->start->x, r->end->y - r->start->y , r->end->z - r->start->z};
 	Vnormalize(&ra);
-	seta = calculCross(&ptoi, n) * pointLight.intensity;					// * dif = 1
-	beta = calculCross(&ra, &itop) * pointLight.intensity * 0.5;		// * spec = 0.5
+	seta = calculCross(&ptoi, n) * pointLight.intensity * m->dif;
+	beta = calculCross(&ra, &itop) * pointLight.intensity * m->spec;
 
 	temp.r = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta))
 			* (1 - m->ref - m->trans) * m->c.r;
@@ -78,6 +80,19 @@ color calculLighting(ray* r, point* p, vector* n, material* m) {
 
 }
 
+// color 값이 0~1 사이 값이도록 조정
+void setValue(color* c) {
+  /* clamp color values to 0.0 ~ 1.0 */
+  if (c->r > 1.0) c->r = 1.0;
+  else if (c->r < 0) c->r = 0;
+
+  if (c->g > 1.0) c->g = 1.0;
+  else if (c->g < 0) c->g = 0;
+
+  if (c->b > 1.0) c->b = 1.0;
+  else if (c->b < 0) c->b = 0;
+}
+
 /* shade */
 /* color of point p with normal vector n and material m returned in c */
 void shade(ray* r, point* p,vector* n,material* m, color* c) {
@@ -90,15 +105,7 @@ void shade(ray* r, point* p,vector* n,material* m, color* c) {
   if(pointLight.visable)
 	  *c = calculLighting(r, p, n, m);
 
-  /* clamp color values to 0.0 ~ 1.0 */
-  if (c->r > 1.0) c->r = 1.0;
-  else if (c->r < 0) c->r = 0;
-
-  if (c->g > 1.0) c->g = 1.0;
-  else if (c->g < 0) c->g = 0;
-
-  if (c->b > 1.0) c->b = 1.0;
-  else if (c->b < 0) c->b = 0;
+  setValue(c);
 
 }
 

@@ -45,6 +45,8 @@ typedef struct material {
   GLfloat amb;
   GLfloat ref;
   GLfloat trans;
+  GLfloat dif;
+  GLfloat spec;
 } material;
 
 typedef struct sphere {
@@ -60,7 +62,6 @@ typedef struct plane {
 } plane;
 
 typedef struct Light {
-	color c;
 	GLfloat intensity;
 	GLfloat amb;
 	point pos_light;
@@ -68,13 +69,15 @@ typedef struct Light {
 }Light;
 
 /* functions in tracer.c */
-void trace (ray*, point*, vector*, material**);
+void trace (int, ray*, point*, vector*, material**);
 void Vnormalize(vector*);
 GLfloat calculCross(vector *, vector *);
 
 /* functions in shader.c */
-material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
 void shade(ray*, point*, vector*, material*, color*);
+void setValue(color*);
+/* r, g, b, amb, ref, trans, dif, spec*/
+material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
 
 /* global variables */
 extern int width;

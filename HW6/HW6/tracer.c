@@ -69,47 +69,24 @@ void findSphereNormal(sphere* s, point* p, vector* n) {
 	n->w = 0.0;
 }
 
-/* rayPlaneIntersect
-int rayPlaneIntersect(ray* r, plane* pl, double* t) {
-	vector p;				 //start of transformed ray
-	double D, temp;    //discriminant
-	vector* v;
-	
-	v = r->end; //point to direction vector
-	//Vnormalize(v);
-	D = calculCross(&pl->normal, v);
-
-	if (abs(D) < 0.001) {  // no intersection
-		return (FALSE);
-	}
-	else {
-		p.x = - r->start->x + pl->c->x;
-		p.y = - r->start->y + pl->c->y;
-		p.z = - r->start->z + pl->c->z;
-		temp = calculCross(&p, &pl->normal);
-		temp = temp / D;
-		// ignore roots which are less than zero (behind viewpoint)
-		if (temp > 0) {
-			*t = temp;
-			return(TRUE);
-		}
-		else return(FALSE);
-	}
-}*/
-
 GLfloat calculCross(vector *v1, vector *v2) {
 	return (v1->x * v2->x) + (v1->y * v2->y) + (v1->z * v2->z);
 }
 
 // 반사 벡터 찾기
-void findReflectionRay(vector v, vector* n, vector* R) {
+vector temp;
+void findReflectionRay(vector v, vector* n, ray* R) {
 
-	GLfloat nv = calculCross(&v, n);
+	GLfloat nv = calculCross(&v, n) * 2;
 
-	R->x = v.x - 2 * nv * n->x;
-	R->y = v.y - 2 * nv * n->y;
-	R->z = v.x - 2 * nv * n->z;
-
+	temp.x = - v.x + nv * n->x;
+	temp.y = - v.y + nv * n->y;
+	temp.z = - v.z + nv * n->z;
+	temp.w = 0;
+	Vnormalize(&temp);
+	
+	R->end = &temp;
+	
 }
 
 // 그림자가 지는 곳인지 체크
@@ -139,14 +116,23 @@ void  isShadow(int flag, point* p) {
 
 }
 
+ray refl_ray;
+void pong(vector ray_v, vector* n, point* p) {
+	findReflectionRay(ray_v, n, &refl_ray);
+	refl_ray.start = p;
+	refl_ray.next = NULL;
+}
+
 /* trace */
 /* If something is hit, returns the finite intersection point p, 
    the normal vector n to the surface at that point, and the surface
    material m. If no hit, returns an infinite point (p->w = 0.0) */
-void trace (ray* r, point* p, vector* n, material* *m) {
+int j = 0;
+void trace (int flag, ray* r, point* p, vector* n, material* *m) {
   double t_s1 = 0, t_s2 = 0, t_pl1 = 0, t_pl2 = 0;     /* parameter value at first hit */
   int hit_s1 = FALSE, hit_s2 = FALSE, hit_pl1 = FALSE, hit_pl2 = FALSE;
-  vector ray_v = {r->end->x, r->end->y, r->end->z }, refl_v;
+  vector ray_v = { r->end->x, r->end->y , r->end->z };
+  //Vnormalize(&ray_v);
   
   hit_s1 = raySphereIntersect(r, s1,&t_s1);		// 화면에 있는 구 s1 에 ray r이 닿았는지 체크
   hit_s2 = raySphereIntersect(r, s2, &t_s2);		// 화면에 있는 구 s2 에 ray r이 닿았는지 체크
@@ -165,7 +151,7 @@ void trace (ray* r, point* p, vector* n, material* *m) {
 	  t_pl1 = (pl1->c->y - r->start->y) / ray_v.y;		// 화면에 있는 plane pl1 과 ray r  체크
 	  t_pl2 = (pl2->c->z - r->start->z) / ray_v.z;		// 화면에 있는 plane pl2 와 ray r  체크
 	  // 더 가까운 곳에 닿은 걸로 처리 (Plane)
-	  if (t_pl1 < t_pl2 && (r->start->y + t_pl2 * r->end->y) > 0) {
+	  if (t_pl1 < t_pl2 && (r->start->y + t_pl2 * r->end->y) > 0 && flag) {
 		  hit_pl1 = TRUE;
 	  }
 	  else {
@@ -178,26 +164,40 @@ void trace (ray* r, point* p, vector* n, material* *m) {
 	  *m = s1->m;
 	  findPointOnRay(r, t_s1, p);		// 닿았으면 닿은 점 p 찾기
 	  findSphereNormal(s1, p, n);		// 그 점에서의 normal vector n 찾기
-	  findReflectionRay(ray_v, n, &refl_v);		// 반사 벡터 R 찾기
+	  if (flag) {
+		  pong(ray_v, n, p);
+		  r->next = &refl_ray;
+	  }
 	  isShadow(1, p);							// 그림자 지는 부분인지 체크
   }
   else if (hit_s2) {
 	  *m = s2->m;
 	  findPointOnRay(r, t_s2, p);
 	  findSphereNormal(s2, p, n);
-	  findReflectionRay(ray_v, n, &refl_v);
+	  if (flag) {
+		  pong(ray_v, n, p);
+		  r->next = &refl_ray;
+	  }
 	  isShadow(2, p);
   }
   else if (hit_pl1) {
 	  *m = pl1->m;
 	  findPointOnRay(r, t_pl1, p);
 	  *n = pl1->normal;
+	  if (flag) {
+		  pong(ray_v, n, p);
+		  r->next = &refl_ray;
+	  }
 	  isShadow(0, p);
   }
   else if (hit_pl2) {
 	  *m = pl2->m;
 	  findPointOnRay(r, t_pl2, p);
 	  *n = pl2->normal;
+	  if (flag) {
+		  pong(ray_v, n, p);
+		  r->next = &refl_ray;
+	  }
 	  isShadow(0, p);
   }
   else {

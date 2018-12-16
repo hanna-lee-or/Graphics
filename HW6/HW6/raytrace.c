@@ -30,7 +30,7 @@ GLfloat fovx;  /* x-angle of view frustum */
 int width;     /* width of window in pixels */
 int height;    /* height of window in pixels */
 
-Light pointLight = { {255, 255, 255}, 0.5, 1, {1, -1, 3, 0}, TRUE };
+Light pointLight = {0.5, 1, {-1, -1, 3, 0}, TRUE };
 
 /* some geometry functions */
 
@@ -70,21 +70,23 @@ plane* makePlane(GLfloat x, GLfloat y, GLfloat z, vector* n) {
 }
 
 /* returns the color seen by ray r in parameter c */
-int k = 0;
+int k = 0, l = 0;
 void rayColor(ray* r, color* c) {
-  point p;  /* first intersection point */
-  vector n;
-  material* m;
+  point p1, p2;  /* first intersection point */
+  vector n1, n2;
+  material* m1;
+  material* m2;
+  color reflect_c = { 0, 0, 0 };
 
-  p.w = 0.0;  /* inialize to "no intersection" */
-  trace(r, &p, &n, &m);		// r은 ray, p는 ray가 구에 닿은 점, n은 p에서의 normal vector, m은 구의 재질
+  p1.w = 0.0;  /* inialize to "no intersection" */
+  trace(TRUE, r, &p1, &n1, &m1);		// r은 ray, p는 ray가 구에 닿은 점, n은 p에서의 normal vector, m은 구의 재질
 
-  // ray가 구에 닿았을 시
-  if (p.w != 0.0) {
+  // ray가 물체에 닿았을 시
+  if (p1.w != 0.0) {
 	  // c는 색상값 받아올 변수.
-	  shade(r, &p, &n, m, c);  /* do the lighting calculations */
+	  shade(r, &p1, &n1, m1, c);  /* do the lighting calculations */
 	  // 그림자 효과
-	  if (p.w == -1) {
+	  if (p1.w == -1) {
 		  c->r *= 0.3;
 		  c->g *= 0.3;
 		  c->b *= 0.3;
@@ -97,6 +99,36 @@ void rayColor(ray* r, color* c) {
     c->b = 0.0;
   }
 
+  // 반사 효과 있을 시, 한번 더 trace
+  if (m1->ref > 0) {
+	  p2.w = 0.0;
+	  trace(FALSE, r->next, &p2, &n2, &m2);
+
+	  // 반사 ray가 물체에 닿았을 시
+	  if (p2.w != 0.0) {
+		  shade(r->next, &p2, &n2, m2, &reflect_c);
+		  if (k % 1000 == 0 && l <= 3) {
+			  printf("r->end는 %.2f %.2f %.2f \n", r->end->x, r->end->y, r->end->z);
+			  printf("c는 %.2f %.2f %.2f \n", c->r, c->g, c->b);
+		  }
+		  // 그림자 효과
+		  if (p2.w == -1) {
+			  reflect_c.r *= 0.3;
+			  reflect_c.g *= 0.3;
+			  reflect_c.b *= 0.3;
+		  }
+	  }
+	  c->r += reflect_c.r * m2->ref;
+	  c->g += reflect_c.g* m2->ref;
+	  c->b += reflect_c.b* m2->ref;
+	  if (k%1000 == 0 && l <= 3) {
+		  l++;
+		  printf("c는 %.2f %.2f %.2f \n", c->r, c->g, c->b);
+		  printf("reflect_c는 %.2f %.2f %.2f \n\n", reflect_c.r, reflect_c.g, reflect_c.b);
+	  }
+	  setValue(c);
+	  k++;
+  }
 }
 
 /* vector from point p to point q is returned in v */
@@ -119,7 +151,7 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 	
 	if (Key == 'r') {
 		pointLight.visable = !pointLight.visable;
-		pointLight.pos_light.x = 1;
+		pointLight.pos_light.x = -1;
 		pointLight.pos_light.y = -1;
 		pointLight.pos_light.z = 3;
 	}
@@ -211,10 +243,10 @@ void initScene () {
 	s2 = makeSphere(-0.12, -0.12, -2.0, 0.05);
 	pl1 = makePlane(0, 0.3, 0, &n1);
 	pl2 = makePlane(0, 0, -5, &n2);
-	s1->m = makeMaterial(0.8,0.3,0.3,0.25, 0, 0);
-	s2->m = makeMaterial(0.7, 0.7, 0.3, 0.25, 0, 0);
-	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.8, 0, 0);
-	pl2->m = makeMaterial(0.4, 0.4, 0.8, 0.8, 0, 0);
+	s1->m = makeMaterial(0.8,0.3,0.3,0.5, 0.5, 0, 1, 0.5);
+	s2->m = makeMaterial(0.7, 0.7, 0.3, 0.5, 0, 0, 1, 0.5);
+	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.5, 0, 0, 1, 0.5);
+	pl2->m = makeMaterial(0.4, 0.4, 0.8, 0.5, 0, 0, 1, 0.5);
 }
 
 void drawScene () {
@@ -251,6 +283,7 @@ void drawScene () {
       calculateDirection(viewpoint,&worldPix,&direction);
 
       /* Find color for pixel */
+	  r.next = NULL;
       rayColor(&r,&c);
       /* write the pixel! */
       drawPixel(i,j,c.r,c.g,c.b);
