@@ -52,7 +52,7 @@ GLfloat calculDist(point* p, point q) {
 }
 
 /* LIGHTING CALCULATIONS */
-color calculLighting(ray* r, point* p, vector* n, material* m) {
+color calculLighting(int flag, ray* r, point* p, vector* n, material* m) {
 
 	color c = { 0, 0, 0 };
 	GLfloat seta = 0, beta = 0, dist = calculDist(p, pointLight.pos_light) + 1;
@@ -60,8 +60,18 @@ color calculLighting(ray* r, point* p, vector* n, material* m) {
 	vector ptoi = {pointLight.pos_light.x - p->x, pointLight.pos_light.y - p->y , pointLight.pos_light.z - p->z};
 	Vnormalize(&ptoi);
 	vector itop = {-ptoi.x, -ptoi.y, -ptoi.z};
-	vector ra = {r->end->x - r->start->x, r->end->y - r->start->y , r->end->z - r->start->z};
-	Vnormalize(&ra);
+	vector ra;
+	if (flag) {
+		ra.x = r->end->x - r->start->x;
+		ra.y = r->end->y - r->start->y;
+		ra.z = r->end->z - r->start->z;
+		Vnormalize(&ra);
+	}
+	else {
+		ra.x = r->end->x;
+		ra.y = r->end->y;
+		ra.z = r->end->z;
+	}
 	seta = calculCross(&ptoi, n) * pointLight.intensity * m->dif;
 	beta = calculCross(&ra, &itop) * pointLight.intensity * m->spec;
 
@@ -95,7 +105,7 @@ void setValue(color* c) {
 
 /* shade */
 /* color of point p with normal vector n and material m returned in c */
-void shade(ray* r, point* p,vector* n,material* m, color* c) {
+void shade(int flag, ray* r, point* p,vector* n,material* m, color* c) {
 
   /* so far, just finds ambient component of color */
   c->r = m->amb * m->c.r;
@@ -103,7 +113,7 @@ void shade(ray* r, point* p,vector* n,material* m, color* c) {
   c->b = m->amb * m->c.b;
 
   if(pointLight.visable)
-	  *c = calculLighting(r, p, n, m);
+	  *c = calculLighting(flag, r, p, n, m);
 
   setValue(c);
 

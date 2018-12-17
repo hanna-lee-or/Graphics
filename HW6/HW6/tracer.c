@@ -79,9 +79,9 @@ void findReflectionRay(vector v, vector* n, ray* R) {
 
 	GLfloat nv = calculCross(&v, n) * 2;
 
-	temp.x = - v.x + nv * n->x;
-	temp.y = - v.y + nv * n->y;
-	temp.z = - v.z + nv * n->z;
+	temp.x = - (v.x - nv * n->x);
+	temp.y = - (v.y - nv * n->y);
+	temp.z = - (v.z - nv * n->z);
 	temp.w = 0;
 	Vnormalize(&temp);
 	
@@ -128,14 +128,16 @@ void pong(vector ray_v, vector* n, point* p) {
    the normal vector n to the surface at that point, and the surface
    material m. If no hit, returns an infinite point (p->w = 0.0) */
 int j = 0;
-void trace (int flag, ray* r, point* p, vector* n, material* *m) {
+void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
   double t_s1 = 0, t_s2 = 0, t_pl1 = 0, t_pl2 = 0;     /* parameter value at first hit */
   int hit_s1 = FALSE, hit_s2 = FALSE, hit_pl1 = FALSE, hit_pl2 = FALSE;
   vector ray_v = { r->end->x, r->end->y , r->end->z };
   //Vnormalize(&ray_v);
   
-  hit_s1 = raySphereIntersect(r, s1,&t_s1);		// 화면에 있는 구 s1 에 ray r이 닿았는지 체크
-  hit_s2 = raySphereIntersect(r, s2, &t_s2);		// 화면에 있는 구 s2 에 ray r이 닿았는지 체크
+  if(flag != 1)
+	  hit_s1 = raySphereIntersect(r, s1,&t_s1);		// 화면에 있는 구 s1 에 ray r이 닿았는지 체크
+  if(flag != 2)
+	  hit_s2 = raySphereIntersect(r, s2, &t_s2);		// 화면에 있는 구 s2 에 ray r이 닿았는지 체크
   
   // 더 가까운 곳에 닿은 걸로 처리 (Sphere)
   if (hit_s1 && hit_s2) {
@@ -151,7 +153,7 @@ void trace (int flag, ray* r, point* p, vector* n, material* *m) {
 	  t_pl1 = (pl1->c->y - r->start->y) / ray_v.y;		// 화면에 있는 plane pl1 과 ray r  체크
 	  t_pl2 = (pl2->c->z - r->start->z) / ray_v.z;		// 화면에 있는 plane pl2 와 ray r  체크
 	  // 더 가까운 곳에 닿은 걸로 처리 (Plane)
-	  if (t_pl1 < t_pl2 && (r->start->y + t_pl2 * r->end->y) > 0 && flag) {
+	  if ((t_pl1 < t_pl2 && (r->start->y + t_pl2 * r->end->y) > 0 && flag != 3) || flag == 4) {
 		  hit_pl1 = TRUE;
 	  }
 	  else {
@@ -169,6 +171,7 @@ void trace (int flag, ray* r, point* p, vector* n, material* *m) {
 		  r->next = &refl_ray;
 	  }
 	  isShadow(1, p);							// 그림자 지는 부분인지 체크
+	  *flag = 1;
   }
   else if (hit_s2) {
 	  *m = s2->m;
@@ -179,6 +182,7 @@ void trace (int flag, ray* r, point* p, vector* n, material* *m) {
 		  r->next = &refl_ray;
 	  }
 	  isShadow(2, p);
+	  *flag = 2;
   }
   else if (hit_pl1) {
 	  *m = pl1->m;
@@ -189,6 +193,7 @@ void trace (int flag, ray* r, point* p, vector* n, material* *m) {
 		  r->next = &refl_ray;
 	  }
 	  isShadow(0, p);
+	  *flag = 3;
   }
   else if (hit_pl2) {
 	  *m = pl2->m;
@@ -199,6 +204,7 @@ void trace (int flag, ray* r, point* p, vector* n, material* *m) {
 		  r->next = &refl_ray;
 	  }
 	  isShadow(0, p);
+	  *flag = 4;
   }
   else {
     /* indicates nothing was hit */

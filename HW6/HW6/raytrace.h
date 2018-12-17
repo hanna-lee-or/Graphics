@@ -69,12 +69,12 @@ typedef struct Light {
 }Light;
 
 /* functions in tracer.c */
-void trace (int, ray*, point*, vector*, material**);
+void trace (int*, ray*, point*, vector*, material**);
 void Vnormalize(vector*);
 GLfloat calculCross(vector *, vector *);
 
 /* functions in shader.c */
-void shade(ray*, point*, vector*, material*, color*);
+void shade(int, ray*, point*, vector*, material*, color*);
 void setValue(color*);
 /* r, g, b, amb, ref, trans, dif, spec*/
 material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);

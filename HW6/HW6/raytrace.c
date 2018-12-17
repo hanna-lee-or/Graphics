@@ -77,14 +77,15 @@ void rayColor(ray* r, color* c) {
   material* m1;
   material* m2;
   color reflect_c = { 0, 0, 0 };
+  int flag = 0;
 
   p1.w = 0.0;  /* inialize to "no intersection" */
-  trace(TRUE, r, &p1, &n1, &m1);		// r은 ray, p는 ray가 구에 닿은 점, n은 p에서의 normal vector, m은 구의 재질
+  trace(&flag, r, &p1, &n1, &m1);		// r은 ray, p는 ray가 구에 닿은 점, n은 p에서의 normal vector, m은 구의 재질
 
   // ray가 물체에 닿았을 시
   if (p1.w != 0.0) {
 	  // c는 색상값 받아올 변수.
-	  shade(r, &p1, &n1, m1, c);  /* do the lighting calculations */
+	  shade(TRUE, r, &p1, &n1, m1, c);  /* do the lighting calculations */
 	  // 그림자 효과
 	  if (p1.w == -1) {
 		  c->r *= 0.3;
@@ -102,13 +103,13 @@ void rayColor(ray* r, color* c) {
   // 반사 효과 있을 시, 한번 더 trace
   if (m1->ref > 0) {
 	  p2.w = 0.0;
-	  trace(FALSE, r->next, &p2, &n2, &m2);
+	  trace(&flag, r->next, &p2, &n2, &m2);
 
 	  // 반사 ray가 물체에 닿았을 시
 	  if (p2.w != 0.0) {
-		  shade(r->next, &p2, &n2, m2, &reflect_c);
+		  shade(FALSE, r->next, &p2, &n2, m2, &reflect_c);
 		  if (k % 1000 == 0 && l <= 3) {
-			  printf("r->end는 %.2f %.2f %.2f \n", r->end->x, r->end->y, r->end->z);
+			  printf("r->end는 %.2f %.2f %.2f, flag = %d \n", r->end->x, r->end->y, r->end->z, flag);
 			  printf("c는 %.2f %.2f %.2f \n", c->r, c->g, c->b);
 		  }
 		  // 그림자 효과
@@ -245,7 +246,7 @@ void initScene () {
 	pl2 = makePlane(0, 0, -5, &n2);
 	s1->m = makeMaterial(0.8,0.3,0.3,0.5, 0.5, 0, 1, 0.5);
 	s2->m = makeMaterial(0.7, 0.7, 0.3, 0.5, 0, 0, 1, 0.5);
-	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.5, 0, 0, 1, 0.5);
+	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.5, 0, 0.5, 1, 0.5);
 	pl2->m = makeMaterial(0.4, 0.4, 0.8, 0.5, 0, 0, 1, 0.5);
 }
 
@@ -290,5 +291,3 @@ void drawScene () {
     }
   }
 }
-
-
