@@ -30,7 +30,7 @@ GLfloat fovx;  /* x-angle of view frustum */
 int width;     /* width of window in pixels */
 int height;    /* height of window in pixels */
 
-Light pointLight = {0.5, 1, {-1, -1, 3, 0}, TRUE };
+Light pointLight = {0.5, 1, {-4, -4, 1}, TRUE };
 
 /* some geometry functions */
 
@@ -101,14 +101,14 @@ void rayColor(ray* r, color* c) {
   }
 
   // 반사 효과 있을 시, 한번 더 trace
-  if (m1->ref > 0) {
+  if (m1->ref > 0 && p1.w != 0) {
 	  p2.w = 0.0;
 	  trace(&flag, r->next, &p2, &n2, &m2);
 
 	  // 반사 ray가 물체에 닿았을 시
 	  if (p2.w != 0.0) {
 		  shade(FALSE, r->next, &p2, &n2, m2, &reflect_c);
-		  if (k % 1000 == 0 && l <= 3) {
+		  if (k % 1000 == 500 && l <= 3) {
 			  printf("r->end는 %.2f %.2f %.2f, flag = %d \n", r->end->x, r->end->y, r->end->z, flag);
 			  printf("c는 %.2f %.2f %.2f \n", c->r, c->g, c->b);
 		  }
@@ -119,10 +119,10 @@ void rayColor(ray* r, color* c) {
 			  reflect_c.b *= 0.3;
 		  }
 	  }
-	  c->r += reflect_c.r * m2->ref;
-	  c->g += reflect_c.g* m2->ref;
-	  c->b += reflect_c.b* m2->ref;
-	  if (k%1000 == 0 && l <= 3) {
+	  c->r += reflect_c.r * m1->ref;
+	  c->g += reflect_c.g* m1->ref;
+	  c->b += reflect_c.b* m1->ref;
+	  if (k%1000 == 500 && l <= 3) {
 		  l++;
 		  printf("c는 %.2f %.2f %.2f \n", c->r, c->g, c->b);
 		  printf("reflect_c는 %.2f %.2f %.2f \n\n", reflect_c.r, reflect_c.g, reflect_c.b);
@@ -146,33 +146,34 @@ void calculateDirection(point* p, point* q, point* v) {
 // 체크하고 싶은 부분 키보드 조작 이용
 void KeyboardFunc(unsigned char Key, int x, int y)
 {
+	float gap = 2;
 	
 	if (Key == 27)
 		exit(0);         // ESC
 	
 	if (Key == 'r') {
 		pointLight.visable = !pointLight.visable;
-		pointLight.pos_light.x = -1;
-		pointLight.pos_light.y = -1;
-		pointLight.pos_light.z = 3;
+		pointLight.pos_light.x = -4;
+		pointLight.pos_light.y = -4;
+		pointLight.pos_light.z = 1;
 	}
 	if (Key == 'a') {
-		pointLight.pos_light.x -= 0.5;
+		pointLight.pos_light.x -= gap;
 	}
 	if (Key == 'd') {
-		pointLight.pos_light.x += 0.5;
+		pointLight.pos_light.x += gap;
 	}
 	if (Key == 'w') {
-		pointLight.pos_light.y += 0.5;
+		pointLight.pos_light.y += gap;
 	}
 	if (Key == 's') {
-		pointLight.pos_light.y -= 0.5;
+		pointLight.pos_light.y -= gap;
 	}
 	if (Key == 'q') {
-		pointLight.pos_light.z -= 0.5;
+		pointLight.pos_light.z -= gap;
 	}
 	if (Key == 'e') {
-		pointLight.pos_light.z += 0.5;
+		pointLight.pos_light.z += gap;
 	}
 	if (Key == 't') {
 		printf("조명 좌표 : %f %f %f", pointLight.pos_light.x, pointLight.pos_light.y, pointLight.pos_light.z);
@@ -246,7 +247,7 @@ void initScene () {
 	pl2 = makePlane(0, 0, -5, &n2);
 	s1->m = makeMaterial(0.8,0.3,0.3,0.5, 0.5, 0, 1, 0.5);
 	s2->m = makeMaterial(0.7, 0.7, 0.3, 0.5, 0, 0, 1, 0.5);
-	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.5, 0, 0.5, 1, 0.5);
+	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.5, 0, 0, 1, 0.5);
 	pl2->m = makeMaterial(0.4, 0.4, 0.8, 0.5, 0, 0, 1, 0.5);
 }
 

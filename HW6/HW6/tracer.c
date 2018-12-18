@@ -79,10 +79,10 @@ void findReflectionRay(vector v, vector* n, ray* R) {
 
 	GLfloat nv = calculCross(&v, n) * 2;
 
-	temp.x = - (v.x - nv * n->x);
-	temp.y = - (v.y - nv * n->y);
-	temp.z = - (v.z - nv * n->z);
-	temp.w = 0;
+	temp.x = (v.x - nv * n->x);
+	temp.y = (v.y - nv * n->y);
+	temp.z = (v.z - nv * n->z);
+	temp.w = 1;
 	Vnormalize(&temp);
 	
 	R->end = &temp;
@@ -131,12 +131,13 @@ int j = 0;
 void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
   double t_s1 = 0, t_s2 = 0, t_pl1 = 0, t_pl2 = 0;     /* parameter value at first hit */
   int hit_s1 = FALSE, hit_s2 = FALSE, hit_pl1 = FALSE, hit_pl2 = FALSE;
+  int flagNum = *flag;
   vector ray_v = { r->end->x, r->end->y , r->end->z };
   //Vnormalize(&ray_v);
   
-  if(flag != 1)
+  if(flagNum != 1)
 	  hit_s1 = raySphereIntersect(r, s1,&t_s1);		// 화면에 있는 구 s1 에 ray r이 닿았는지 체크
-  if(flag != 2)
+  if(flagNum != 2)
 	  hit_s2 = raySphereIntersect(r, s2, &t_s2);		// 화면에 있는 구 s2 에 ray r이 닿았는지 체크
   
   // 더 가까운 곳에 닿은 걸로 처리 (Sphere)
@@ -150,14 +151,24 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
   }
   // Sphere에 안 닿았을 경우, Plane에 닿을 것이므로 처리
   else if (!hit_s1 && !hit_s2) {
-	  t_pl1 = (pl1->c->y - r->start->y) / ray_v.y;		// 화면에 있는 plane pl1 과 ray r  체크
-	  t_pl2 = (pl2->c->z - r->start->z) / ray_v.z;		// 화면에 있는 plane pl2 와 ray r  체크
-	  // 더 가까운 곳에 닿은 걸로 처리 (Plane)
-	  if ((t_pl1 < t_pl2 && (r->start->y + t_pl2 * r->end->y) > 0 && flag != 3) || flag == 4) {
-		  hit_pl1 = TRUE;
+	  if (flagNum != 3) {
+		  t_pl1 = (pl1->c->y - r->start->y) / ray_v.y;		// 화면에 있는 plane pl1 과 ray r  체크
+		  if ((r->end->y) * t_pl1 >= 0)
+			  hit_pl1 = TRUE;
 	  }
-	  else {
-		  hit_pl2 = TRUE;
+	  if (flagNum != 4) {
+		  t_pl2 = (pl2->c->z - r->start->z) / ray_v.z;		// 화면에 있는 plane pl2 와 ray r  체크
+		  if ((r->end->z - r->start->z) * t_pl2 >= 0)
+			  hit_pl2 = TRUE;
+	  }
+	  // 더 가까운 곳에 닿은 걸로 처리 (Plane)
+	  if (hit_pl1 && hit_pl2) {
+		  if (t_pl1 <= t_pl2 && r->start->y + t_pl2 * r->end->y > 0) {
+			  hit_pl2 = FALSE;
+		  }
+		  else {
+			  hit_pl1 = FALSE;
+		  }
 	  }
   }
 
@@ -166,7 +177,7 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
 	  *m = s1->m;
 	  findPointOnRay(r, t_s1, p);		// 닿았으면 닿은 점 p 찾기
 	  findSphereNormal(s1, p, n);		// 그 점에서의 normal vector n 찾기
-	  if (flag) {
+	  if (flagNum == 0) {
 		  pong(ray_v, n, p);
 		  r->next = &refl_ray;
 	  }
@@ -177,7 +188,7 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
 	  *m = s2->m;
 	  findPointOnRay(r, t_s2, p);
 	  findSphereNormal(s2, p, n);
-	  if (flag) {
+	  if (flagNum == 0) {
 		  pong(ray_v, n, p);
 		  r->next = &refl_ray;
 	  }
@@ -188,7 +199,7 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
 	  *m = pl1->m;
 	  findPointOnRay(r, t_pl1, p);
 	  *n = pl1->normal;
-	  if (flag) {
+	  if (flagNum == 0) {
 		  pong(ray_v, n, p);
 		  r->next = &refl_ray;
 	  }
@@ -199,7 +210,7 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
 	  *m = pl2->m;
 	  findPointOnRay(r, t_pl2, p);
 	  *n = pl2->normal;
-	  if (flag) {
+	  if (flagNum == 0) {
 		  pong(ray_v, n, p);
 		  r->next = &refl_ray;
 	  }
