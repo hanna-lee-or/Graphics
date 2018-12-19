@@ -1,0 +1,7 @@
+﻿  raytrace.c
+c:\users\user\desktop\coding\c\그래픽스\hw6\hw6\raytrace.c(141): warning C4101: 'length' :참조되지 않은 지역 변수입니다.
+c:\users\user\desktop\coding\c\그래픽스\hw6\hw6\raytrace.c(223): warning C4013: 'ReadBMPFile'이(가) 정의되지 않았습니다. extern은 int형을 반환하는 것으로 간주합니다.
+  코드를 생성하고 있습니다.
+  All 36 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  코드를 생성했습니다.
+  HW6.vcxproj -> C:\Users\USER\Desktop\Coding\C\그래픽스\HW6\Release\HW6.exe

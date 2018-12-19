@@ -103,18 +103,56 @@ void setValue(color* c) {
 }
 
 /* mapping */
-void mapping(point* p, material* m) {
-	
+void mapping(int isMap, point* p, material* m) {
+
+	float x, y, z, rx, ry, rz;
+	int index_x, index_y, index_z;
+
+	// background mapping
+	if (isMap == 1) {
+		x = p->x + 1.5f;
+		y = p->y + 1;
+		if (x >= 0 && x < 3 && y >= 0 && y < 2) {
+			rx = (float) map1_width / 3;
+			ry = (float) map1_height / 2;
+			index_x = roundf(x*rx);
+			index_y = roundf(y*ry);
+			if (index_x >= map1_width)
+				index_x = map1_width - 1;
+			if (index_y >= map1_height)
+				index_y = map1_height - 1;
+			m->c = colorMap1[index_x][index_y];
+		}
+	}
+	else if (isMap == 2) {
+		x = p->x + 2.5f;
+		z = p->z + 5;
+		if (x >= 0 && x <= 4 && z >= 0 && z <= 4) {
+			rx = (float) map2_width / 4;
+			rz = (float) map2_height / 4;
+			index_x = roundf(x*rx);
+			index_z = roundf(z*rz);
+			if (index_x >= map2_width)
+				index_x = map2_width - 1;
+			if (index_z >= map2_height)
+				index_z = map2_height - 1;
+			m->c = colorMap2[index_x][index_z];
+		}
+	}
+
 }
 
 /* shade */
 /* color of point p with normal vector n and material m returned in c */
-void shade(GLboolean isMap, GLboolean isFirst, ray* r, point* p,vector* n,material* m, color* c) {
+void shade(int isMap, GLboolean isFirst, ray* r, point* p,vector* n,material* m, color* c) {
 
   /* so far, just finds ambient component of color */
   c->r = m->amb * m->c.r;
   c->g = m->amb * m->c.g;
   c->b = m->amb * m->c.b;
+
+  if (isMap != 0)
+	  mapping(isMap, p, m);
 
   if(pointLight.visable)
 	  *c = calculLighting(isFirst, r, p, n, m);

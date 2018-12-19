@@ -9,11 +9,7 @@
 #define PIXEL_SIZE   3    // 픽셀 한 개의 크기 3바이트(24비트)
 #define PIXEL_ALIGN  4    // 픽셀 데이터 가로 한 줄은 4의 배수 크기로 저장됨
 
-color** colorMap;
-int map_width;
-int map_height;
-
-void ReadBMPFile(char* file_name)
+void ReadBMPFile(char* file_name, int flag, int* width, int* height)
 {
 	FILE *fpBmp;                    // 비트맵 파일 포인터
 	BITMAPFILEHEADER fileHeader;    // 비트맵 파일 헤더 구조체 변수
@@ -22,7 +18,7 @@ void ReadBMPFile(char* file_name)
 	unsigned char *image;    // 픽셀 데이터 포인터
 	int size;                // 픽셀 데이터 크기
 	int padding;             // 픽셀 데이터의 가로 크기가 4의 배수가 아닐 때 남는 공간의 크기
-	int i = 0;
+	int i = 0, map_width, map_height;
 
 	fpBmp = fopen(file_name, "rb");    // 비트맵 파일을 바이너리 모드로 열기
 	if (fpBmp == NULL) {    // 파일 열기에 실패하면
@@ -65,7 +61,9 @@ void ReadBMPFile(char* file_name)
 
 	size = infoHeader.biSizeImage;    // 픽셀 데이터 크기
 	map_width = infoHeader.biWidth;       // 비트맵 이미지의 가로 크기
+	*width = map_width;
 	map_height = infoHeader.biHeight;     // 비트맵 이미지의 세로 크기
+	*height = map_height;
 
 	// 이미지의 가로 크기에 픽셀 크기를 곱하여 가로 한 줄의 크기를 구하고
 	// 4로 나머지를 구함. 그리고 4에서 나머지를 빼주면 남는 공간을 구할 수 있음.
@@ -95,10 +93,16 @@ void ReadBMPFile(char* file_name)
 
 	fclose(fpBmp);    // 비트맵 파일 닫기
 
-	colorMap = (color**) malloc(sizeof(color*) *map_height);
+	if(flag == 1)
+		colorMap1 = (color**) malloc(sizeof(color*) *map_width);
+	else if(flag == 2)
+		colorMap2 = (color**)malloc(sizeof(color*) *map_width);
 
-	for (i = 0; i < map_height; i++) {
-		colorMap[i] = (color*)malloc(sizeof(color) * map_width);
+	for (i = 0; i < map_width; i++) {
+		if (flag == 1)
+			colorMap1[i] = (color*)malloc(sizeof(color) * map_height);
+		else if (flag == 2)
+			colorMap2[i] = (color*)malloc(sizeof(color) * map_height);
 	}
 
 	// 픽셀 데이터는 아래 위가 뒤집혀서 저장되므로 아래쪽부터 반복
@@ -122,10 +126,16 @@ void ReadBMPFile(char* file_name)
 			b = pixel->rgbtBlue;
 
 			// RGBTRIPLE 구조체로 파랑, 초록, 빨강값을 가져옴
-			colorMap[u][x].b = b / 255.0;
-			colorMap[u][x].g = g / 255.0;
-			colorMap[u][x].r = r / 255.0;
-
+			if (flag == 1) {
+				colorMap1[x][u].b = b / 255.0;
+				colorMap1[x][u].g = g / 255.0;
+				colorMap1[x][u].r = r / 255.0;
+			}
+			else if (flag == 2) {
+				colorMap2[x][u].b = b / 255.0;
+				colorMap2[x][u].g = g / 255.0;
+				colorMap2[x][u].r = r / 255.0;
+			}
 		}
 	}
 

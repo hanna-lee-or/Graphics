@@ -77,7 +77,7 @@ void Vnormalize(vector*);
 GLfloat calculCross(vector *, vector *);
 
 /* functions in shader.c */
-void shade(GLboolean, GLboolean, ray*, point*, vector*, material*, color*);
+void shade(int, GLboolean, ray*, point*, vector*, material*, color*);
 void setValue(color*);
 /* r, g, b, amb, ref, trans, dif, spec*/
 material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
@@ -86,9 +86,12 @@ material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLf
 extern int width;
 extern int height;
 extern Light pointLight;
-extern color** colorMap;
-extern int map_width;
-extern int map_height;
+extern color** colorMap1;
+extern color** colorMap2;
+extern int map1_width;
+extern int map1_height;
+extern int map2_width;
+extern int map2_height;
 
 /* the scene: so far, two sphere */
 sphere* s1;

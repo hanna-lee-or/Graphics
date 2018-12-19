@@ -22,7 +22,9 @@ void drawScene(void);
 void firstHit(ray*,point*,vector*,material**);
 
 /* local data */
-char *file_name = "background.bmp";
+char *file_name1 = "background.bmp", *file_name2 = "floor.bmp";
+color **colorMap1, **colorMap2;
+int map1_width, map1_height, map2_width, map2_height;
 int k = 0;		//printf 테스트용
 
 /* parameters defining the camera */
@@ -78,19 +80,20 @@ void rayColor(ray* r, color* c) {
   material* m1;
   material* m2;
   color reflect_c = { 0, 0, 0 };
-  int flag = 0;
-  GLboolean ismap = FALSE;
+  int flag = 0, ismap = FALSE;
 
   p1.w = 0.0;  /* inialize to "no intersection" */
   trace(&flag, r, &p1, &n1, &m1);		// r은 ray, p는 ray가 구에 닿은 점, n은 p에서의 normal vector, m은 구의 재질
 
   // ray가 물체에 닿았을 시
   if (p1.w != 0.0) {
-	  // c는 색상값 받아올 변수.
 	  if (flag == 4)
-		  ismap = TRUE;
+		  ismap = 1;
+	  else if (flag == 3)
+		  ismap = 2;
 	  else
 		  ismap = FALSE;
+	  // c는 색상값 받아올 변수.
 	  shade(ismap, TRUE, r, &p1, &n1, m1, c);  /* do the lighting calculations */
 	  // 그림자 효과
 	  if (p1.w == -1) {
@@ -110,11 +113,12 @@ void rayColor(ray* r, color* c) {
   if (m1->ref > 0 && p1.w != 0) {
 	  p2.w = 0.0;
 	  trace(&flag, r->next, &p2, &n2, &m2);
-
 	  // 반사 ray가 물체에 닿았을 시
 	  if (p2.w != 0.0) {
 		  if (flag == 4)
-			  ismap = TRUE;
+			  ismap = 1;
+		  else if (flag == 3)
+			  ismap = 2;
 		  else
 			  ismap = FALSE;
 		  shade(ismap, FALSE, r->next, &p2, &n2, m2, &reflect_c);
@@ -176,7 +180,7 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 		pointLight.pos_light.z += gap;
 	}
 	if (Key == 't') {
-		printf("조명 좌표 : %f %f %f", pointLight.pos_light.x, pointLight.pos_light.y, pointLight.pos_light.z);
+		printf("조명 좌표 : %f %f %f /n", pointLight.pos_light.x, pointLight.pos_light.y, pointLight.pos_light.z);
 	}
 	display();
 
@@ -216,8 +220,8 @@ void init(int w, int h) {
   initScene();
 
   /* read .bmp file for mapping*/
-  ReadBMPFile(file_name);
-
+  ReadBMPFile(file_name1, 1, &map1_width, &map1_height);
+  ReadBMPFile(file_name2, 2, &map2_width, &map2_height);
 }
 
 void display() {

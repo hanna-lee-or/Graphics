@@ -129,7 +129,7 @@ void pong(vector ray_v, vector* n, point* p) {
    material m. If no hit, returns an infinite point (p->w = 0.0) */
 int j = 0;
 void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
-  double t_s1 = 0, t_s2 = 0, t_pl1 = 0, t_pl2 = 0;     /* parameter value at first hit */
+  double t_s1 = 0, t_s2 = 0, t_pl1 = 0, t_pl2 = 0, temp1, temp2;     /* parameter value at first hit */
   int hit_s1 = FALSE, hit_s2 = FALSE, hit_pl1 = FALSE, hit_pl2 = FALSE;
   int flagNum = *flag;
   vector ray_v = { r->end->x, r->end->y , r->end->z };
@@ -158,12 +158,14 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
 	  }
 	  if (flagNum != 4) {
 		  t_pl2 = (pl2->c->z - r->start->z) / ray_v.z;		// 화면에 있는 plane pl2 와 ray r  체크
-		  if (r->end->z < 0)
+		  temp1 = r->start->y + t_pl2 * r->end->y;
+		  temp2 = r->start->x + t_pl2 * r->end->x;
+		  if (r->end->z < 0 && temp1 > -1 && temp2 < 1.4f && temp2 > -1.4f)
 			  hit_pl2 = TRUE;
 	  }
 	  // 더 가까운 곳에 닿은 걸로 처리 (Plane)
 	  if (hit_pl1 && hit_pl2) {
-		  if (t_pl1 <= t_pl2) {
+		  if (t_pl1 < t_pl2) {
 			  hit_pl2 = FALSE;
 		  }
 		  else {
