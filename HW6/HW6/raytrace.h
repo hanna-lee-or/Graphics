@@ -2,12 +2,14 @@
 /*         Raytracer declarations, Final Project               */
 /******************************************************************/
 
-
 /* constants */
 #define TRUE 1
 #define FALSE 0
 
 #define M_PI 3.1415926535897932384626433832795029
+
+#include <GL/glut.h>
+#include "ReadBMP.h"
 
 /* data structures */
 
@@ -63,6 +65,7 @@ typedef struct plane {
 
 typedef struct Light {
 	GLfloat intensity;
+	color color;
 	GLfloat amb;
 	point pos_light;
 	GLboolean visable;
@@ -74,7 +77,7 @@ void Vnormalize(vector*);
 GLfloat calculCross(vector *, vector *);
 
 /* functions in shader.c */
-void shade(int, ray*, point*, vector*, material*, color*);
+void shade(GLboolean, GLboolean, ray*, point*, vector*, material*, color*);
 void setValue(color*);
 /* r, g, b, amb, ref, trans, dif, spec*/
 material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat);
@@ -83,6 +86,9 @@ material* makeMaterial(GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLfloat, GLf
 extern int width;
 extern int height;
 extern Light pointLight;
+extern color** colorMap;
+extern int map_width;
+extern int map_height;
 
 /* the scene: so far, two sphere */
 sphere* s1;

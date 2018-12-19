@@ -1,6 +1,6 @@
 /******************************************************************/
-/*         Main raytracer file, Final Project                  */
-/*         By:   1615057 이한나                                   */
+ /*          Main raytracer file, Final Project            */
+/*           By:  1615057 이한나                             */
 /******************************************************************/
 
 #include <assert.h>
@@ -22,6 +22,8 @@ void drawScene(void);
 void firstHit(ray*,point*,vector*,material**);
 
 /* local data */
+char *file_name = "background.bmp";
+int k = 0;		//printf 테스트용
 
 /* parameters defining the camera */
 point* viewpoint;
@@ -30,7 +32,7 @@ GLfloat fovx;  /* x-angle of view frustum */
 int width;     /* width of window in pixels */
 int height;    /* height of window in pixels */
 
-Light pointLight = {0.5, 1, {4, -4, 1}, TRUE };
+Light pointLight = { 0.5, {1, 1, 1}, 1, {4, -4, 0}, TRUE };
 
 /* some geometry functions */
 
@@ -70,7 +72,6 @@ plane* makePlane(GLfloat x, GLfloat y, GLfloat z, vector* n) {
 }
 
 /* returns the color seen by ray r in parameter c */
-int k = 0;
 void rayColor(ray* r, color* c) {
   point p1, p2;  /* first intersection point */
   vector n1, n2;
@@ -78,6 +79,7 @@ void rayColor(ray* r, color* c) {
   material* m2;
   color reflect_c = { 0, 0, 0 };
   int flag = 0;
+  GLboolean ismap = FALSE;
 
   p1.w = 0.0;  /* inialize to "no intersection" */
   trace(&flag, r, &p1, &n1, &m1);		// r은 ray, p는 ray가 구에 닿은 점, n은 p에서의 normal vector, m은 구의 재질
@@ -85,7 +87,11 @@ void rayColor(ray* r, color* c) {
   // ray가 물체에 닿았을 시
   if (p1.w != 0.0) {
 	  // c는 색상값 받아올 변수.
-	  shade(TRUE, r, &p1, &n1, m1, c);  /* do the lighting calculations */
+	  if (flag == 4)
+		  ismap = TRUE;
+	  else
+		  ismap = FALSE;
+	  shade(ismap, TRUE, r, &p1, &n1, m1, c);  /* do the lighting calculations */
 	  // 그림자 효과
 	  if (p1.w == -1) {
 		  c->r *= 0.3;
@@ -107,7 +113,11 @@ void rayColor(ray* r, color* c) {
 
 	  // 반사 ray가 물체에 닿았을 시
 	  if (p2.w != 0.0) {
-		  shade(FALSE, r->next, &p2, &n2, m2, &reflect_c);
+		  if (flag == 4)
+			  ismap = TRUE;
+		  else
+			  ismap = FALSE;
+		  shade(ismap, FALSE, r->next, &p2, &n2, m2, &reflect_c);
 		  // 그림자 효과
 		  if (p2.w == -1) {
 			  reflect_c.r *= 0.3;
@@ -145,7 +155,7 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 		pointLight.visable = !pointLight.visable;
 		pointLight.pos_light.x = 4;
 		pointLight.pos_light.y = -4;
-		pointLight.pos_light.z = 1;
+		pointLight.pos_light.z = 0;
 	}
 	if (Key == 'a') {
 		pointLight.pos_light.x -= gap;
@@ -176,8 +186,8 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 
 /* Just sets up window and display callback */
 int main (int argc, char** argv) {
-  int win;
-  
+	int win;
+
   glutInit(&argc,argv);
   glutInitWindowSize(500,350);
   glutInitWindowPosition(400,200);
@@ -204,6 +214,10 @@ void init(int w, int h) {
   /* raytracer setup */
   initCamera(w,h);
   initScene();
+
+  /* read .bmp file for mapping*/
+  ReadBMPFile(file_name);
+
 }
 
 void display() {
@@ -235,7 +249,7 @@ void initScene () {
 	s2 = makeSphere(-0.12, -0.12, -2.0, 0.05);
 	pl1 = makePlane(0, 0.3, 0, &n1);
 	pl2 = makePlane(0, 0, -5, &n2);
-	s1->m = makeMaterial(0.8,0.3,0.3,0.5, 0.5, 0, 1, 0.5);
+	s1->m = makeMaterial(0.8, 0.3, 0.3, 0.5, 0.5, 0, 1, 0.5);
 	s2->m = makeMaterial(0.7, 0.7, 0.3, 0.5, 0, 0, 1, 0.5);
 	pl1->m = makeMaterial(0.4, 0.8, 0.4, 0.5, 0, 0, 1, 0.5);
 	pl2->m = makeMaterial(0.4, 0.4, 0.8, 0.5, 0, 0, 1, 0.5);
@@ -278,7 +292,7 @@ void drawScene () {
 	  r.next = NULL;
       rayColor(&r,&c);
       /* write the pixel! */
-      drawPixel(i,j,c.r,c.g,c.b);
+      drawPixel(i, j, c.r, c.g, c.b);
     }
   }
 }

@@ -52,7 +52,7 @@ GLfloat calculDist(point* p, point q) {
 }
 
 /* LIGHTING CALCULATIONS */
-color calculLighting(int flag, ray* r, point* p, vector* n, material* m) {
+color calculLighting(GLboolean isFirst, ray* r, point* p, vector* n, material* m) {
 
 	color c = { 0, 0, 0 };
 	GLfloat seta = 0, beta = 0, dist = calculDist(p, pointLight.pos_light) + 1;
@@ -61,11 +61,10 @@ color calculLighting(int flag, ray* r, point* p, vector* n, material* m) {
 	Vnormalize(&ptoi);
 	vector itop = {-ptoi.x, -ptoi.y, -ptoi.z};
 	vector ra;
-	if (flag) {
+	if (isFirst) {
 		ra.x = r->end->x - r->start->x;
 		ra.y = r->end->y - r->start->y;
 		ra.z = r->end->z - r->start->z;
-		Vnormalize(&ra);
 	}
 	else {
 		ra.x = r->end->x;
@@ -75,11 +74,11 @@ color calculLighting(int flag, ray* r, point* p, vector* n, material* m) {
 	seta = calculCross(&ptoi, n) * pointLight.intensity * m->dif;
 	beta = calculCross(&ra, &itop) * pointLight.intensity * m->spec;
 
-	temp.r = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta))
+	temp.r = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta) * pointLight.color.r)
 			* (1 - m->ref - m->trans) * m->c.r;
-	temp.g = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta))
+	temp.g = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta) * pointLight.color.g)
 			* (1 - m->ref - m->trans) * m->c.g;
-	temp.b = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta))
+	temp.b = (pointLight.amb*m->amb + 0.1 * dist * (seta + beta) * pointLight.color.b)
 			* (1 - m->ref - m->trans) * m->c.b;
 
 	c.r = temp.r;
@@ -103,9 +102,14 @@ void setValue(color* c) {
   else if (c->b < 0) c->b = 0;
 }
 
+/* mapping */
+void mapping(point* p, material* m) {
+	
+}
+
 /* shade */
 /* color of point p with normal vector n and material m returned in c */
-void shade(int flag, ray* r, point* p,vector* n,material* m, color* c) {
+void shade(GLboolean isMap, GLboolean isFirst, ray* r, point* p,vector* n,material* m, color* c) {
 
   /* so far, just finds ambient component of color */
   c->r = m->amb * m->c.r;
@@ -113,7 +117,7 @@ void shade(int flag, ray* r, point* p,vector* n,material* m, color* c) {
   c->b = m->amb * m->c.b;
 
   if(pointLight.visable)
-	  *c = calculLighting(flag, r, p, n, m);
+	  *c = calculLighting(isFirst, r, p, n, m);
 
   setValue(c);
 

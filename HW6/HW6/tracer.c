@@ -153,17 +153,17 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
   else if (!hit_s1 && !hit_s2) {
 	  if (flagNum != 3) {
 		  t_pl1 = (pl1->c->y - r->start->y) / ray_v.y;		// 화면에 있는 plane pl1 과 ray r  체크
-		  if ((r->end->y) * t_pl1 >= 0)
+		  if (r->end->y > 0)
 			  hit_pl1 = TRUE;
 	  }
 	  if (flagNum != 4) {
 		  t_pl2 = (pl2->c->z - r->start->z) / ray_v.z;		// 화면에 있는 plane pl2 와 ray r  체크
-		  if ((r->end->z - r->start->z) * t_pl2 >= 0)
+		  if (r->end->z < 0)
 			  hit_pl2 = TRUE;
 	  }
 	  // 더 가까운 곳에 닿은 걸로 처리 (Plane)
 	  if (hit_pl1 && hit_pl2) {
-		  if (t_pl1 <= t_pl2 && r->start->y + t_pl2 * r->end->y > 0) {
+		  if (t_pl1 <= t_pl2) {
 			  hit_pl2 = FALSE;
 		  }
 		  else {
