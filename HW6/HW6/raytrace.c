@@ -30,7 +30,7 @@ GLfloat fovx;  /* x-angle of view frustum */
 int width;     /* width of window in pixels */
 int height;    /* height of window in pixels */
 
-Light pointLight = {0.5, 1, {-4, -4, 1}, TRUE };
+Light pointLight = {0.5, 1, {4, -4, 1}, TRUE };
 
 /* some geometry functions */
 
@@ -70,7 +70,7 @@ plane* makePlane(GLfloat x, GLfloat y, GLfloat z, vector* n) {
 }
 
 /* returns the color seen by ray r in parameter c */
-int k = 0, l = 0;
+int k = 0;
 void rayColor(ray* r, color* c) {
   point p1, p2;  /* first intersection point */
   vector n1, n2;
@@ -108,10 +108,6 @@ void rayColor(ray* r, color* c) {
 	  // 반사 ray가 물체에 닿았을 시
 	  if (p2.w != 0.0) {
 		  shade(FALSE, r->next, &p2, &n2, m2, &reflect_c);
-		  if (k % 1000 == 500 && l <= 3) {
-			  printf("r->end는 %.2f %.2f %.2f, flag = %d \n", r->end->x, r->end->y, r->end->z, flag);
-			  printf("c는 %.2f %.2f %.2f \n", c->r, c->g, c->b);
-		  }
 		  // 그림자 효과
 		  if (p2.w == -1) {
 			  reflect_c.r *= 0.3;
@@ -122,13 +118,7 @@ void rayColor(ray* r, color* c) {
 	  c->r += reflect_c.r * m1->ref;
 	  c->g += reflect_c.g* m1->ref;
 	  c->b += reflect_c.b* m1->ref;
-	  if (k%1000 == 500 && l <= 3) {
-		  l++;
-		  printf("c는 %.2f %.2f %.2f \n", c->r, c->g, c->b);
-		  printf("reflect_c는 %.2f %.2f %.2f \n\n", reflect_c.r, reflect_c.g, reflect_c.b);
-	  }
 	  setValue(c);
-	  k++;
   }
 }
 
@@ -146,14 +136,14 @@ void calculateDirection(point* p, point* q, point* v) {
 // 체크하고 싶은 부분 키보드 조작 이용
 void KeyboardFunc(unsigned char Key, int x, int y)
 {
-	float gap = 2;
+	float gap = 1;
 	
 	if (Key == 27)
 		exit(0);         // ESC
 	
 	if (Key == 'r') {
 		pointLight.visable = !pointLight.visable;
-		pointLight.pos_light.x = -4;
+		pointLight.pos_light.x = 4;
 		pointLight.pos_light.y = -4;
 		pointLight.pos_light.z = 1;
 	}
@@ -164,10 +154,10 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 		pointLight.pos_light.x += gap;
 	}
 	if (Key == 'w') {
-		pointLight.pos_light.y += gap;
+		pointLight.pos_light.y += gap/2;
 	}
 	if (Key == 's') {
-		pointLight.pos_light.y -= gap;
+		pointLight.pos_light.y -= gap/2;
 	}
 	if (Key == 'q') {
 		pointLight.pos_light.z -= gap;
@@ -187,10 +177,10 @@ void KeyboardFunc(unsigned char Key, int x, int y)
 /* Just sets up window and display callback */
 int main (int argc, char** argv) {
   int win;
-
+  
   glutInit(&argc,argv);
   glutInitWindowSize(500,350);
-  glutInitWindowPosition(100,100);
+  glutInitWindowPosition(400,200);
   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
   win = glutCreateWindow("raytrace_1615057");
   glutSetWindow(win);
@@ -205,7 +195,7 @@ void init(int w, int h) {
   /* OpenGL setup */
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  glOrtho(0.0, 1.0, 0.0, 1.0, -2.0, 2.0);
+  glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
   glClearColor(0.0, 0.0, 0.0, 1.0);  
 
   /* low-level graphics setup */

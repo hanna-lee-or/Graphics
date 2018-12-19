@@ -149,7 +149,7 @@ void trace (int* flag, ray* r, point* p, vector* n, material* *m) {
 		  hit_s1 = FALSE;
 	  }
   }
-  // Sphere에 안 닿았을 경우, Plane에 닿을 것이므로 처리
+  // Sphere에 안 닿았을 경우, Plane에 닿는지 처리
   else if (!hit_s1 && !hit_s2) {
 	  if (flagNum != 3) {
 		  t_pl1 = (pl1->c->y - r->start->y) / ray_v.y;		// 화면에 있는 plane pl1 과 ray r  체크
